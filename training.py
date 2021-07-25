@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
 
 
 import numpy as np
@@ -13,6 +9,8 @@ import fnmatch
 import re
 
 from sklearn.model_selection import train_test_split
+
+
 from keras_unet.utils import get_augmented
 import tensorflow as tf
 from PIL import Image
@@ -27,11 +25,13 @@ from keras_unet.metrics import iou, iou_thresholded
 #from keras_unet.losses import jaccard_distance
 
 
+
 base_dir = "../../../"
 
 train_images_dir = base_dir + "images/Chicken/train/"
 validation_images_dir = base_dir + "images/Chicken/validation/"
 test_images_dir = base_dir + "images/Chicken/test/"
+
 
 train_masks_dir = base_dir + "masks/Chicken/train/"
 validation_masks_dir = base_dir + "masks/Chicken/validation/"
@@ -75,11 +75,11 @@ for fname in os.listdir(train_images_dir):
         train_map[fname].append(mask)
 
 
-
-def trainEpochWithNewData(offset, training_size, train_map):
+def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint):
 
     imgs_list = []
     masks_list = []
+
 
     counter = 0
     for mask in train_map:
@@ -114,7 +114,7 @@ def trainEpochWithNewData(offset, training_size, train_map):
 
 
 
-    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.25, random_state=0)
+    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.3, random_state=0)
 
     print("x_train: ", x_train.shape)
     print("y_train: ", y_train.shape)
@@ -127,8 +127,9 @@ def trainEpochWithNewData(offset, training_size, train_map):
             horizontal_flip=True
         ))
 
-    input_shape = x_train[0].shape
 
+
+    input_shape = x_train[0].shape
 
     model = custom_unet(
         input_shape,
@@ -139,43 +140,91 @@ def trainEpochWithNewData(offset, training_size, train_map):
         output_activation='sigmoid'
     )
 
-    model.summary()
-
-    model_filename = 'chicken_training_varied.h5'
-    callback_checkpoint = ModelCheckpoint(
-        model_filename, 
-        verbose=1, 
-        monitor='val_loss', 
-        save_best_only=True
-    )
-
+   # model.summary()
 
     model.compile(
-        optimizer=Adam(), 
+        optimizer=Adam(),
         #optimizer=SGD(lr=0.01, momentum=0.99),
         loss='binary_crossentropy',
         #loss=jaccard_distance,
         metrics=[iou, iou_thresholded]
     )
 
-    model.load_weights(model_filename)
+    try:
+        model.load_weights(best_file_checkpoint)
+    except Exception:
+        print("Not loading weights")
 
+    fname = "weights-{val_loss:.4f}.hdf5"
+
+    callback_checkpoint = ModelCheckpoint(
+        fname, 
+        verbose=1, 
+        monitor='val_loss', 
+        save_best_only=True
+    )
+    callbacks_list = [callback_checkpoint]
+
+    
     history = model.fit_generator(
         train_gen,
-        steps_per_epoch=100,
-        epochs=1,
+        steps_per_epoch=5,
+        epochs=2,
 
         validation_data=(x_val, y_val),
-        callbacks=[callback_checkpoint]
+        callbacks=callbacks_list
     )
 
 
-trainEpochWithNewData(0, 100, train_map)
-trainEpochWithNewData(100, 200, train_map)
-trainEpochWithNewData(200, 300, train_map)
-trainEpochWithNewData(300, 400, train_map)
-trainEpochWithNewData(400, 500, train_map)
-trainEpochWithNewData(500, 600, train_map)
-trainEpochWithNewData(600, 700, train_map)
-trainEpochWithNewData(700, 800, train_map)
-trainEpochWithNewData(800, 900, train_map)
+
+
+
+
+try:
+    sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+    print(sorted_weights)
+    trainEpochWithNewData(0, 100, train_map, sorted_weights[0])
+except Exception as inst:
+    print(inst)
+    sorted_weights = None
+    trainEpochWithNewData(0, 100, train_map)
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(100, 200, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(200, 300, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(300, 400, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(400, 500, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(500, 600, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(600, 700, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(700, 800, train_map, sorted_weights[0])
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+
+trainEpochWithNewData(800, 900, train_map, sorted_weights[0])
