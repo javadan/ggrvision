@@ -1,4 +1,3 @@
-#copy paste into jupyter
 !pip3 install keras-unet
 import numpy as np
 import matplotlib.pyplot as plt
@@ -74,6 +73,7 @@ for mask in test_map:
         imgs_list.append(np.array(i))
         
         m = Image.open(value).resize((256,256))
+        m = m.convert('L')
         masks_list.append(np.array(m))
     
     
@@ -115,7 +115,7 @@ model.summary()
 from keras.callbacks import ModelCheckpoint
 
 
-model_filename = 'chicken_training_varied.h5'
+#model_filename = 'chicken_training_varied.h5'
 callback_checkpoint = ModelCheckpoint(
     model_filename, 
     verbose=1, 
@@ -135,7 +135,10 @@ model.compile(
     metrics=[iou, iou_thresholded]
 )
 
-model.load_weights(model_filename)
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+
+model.load_weights(sorted_weights[0])
 y_pred = model.predict(x)
 
 from keras_unet.utils import plot_imgs
