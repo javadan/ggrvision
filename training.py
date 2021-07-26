@@ -1,5 +1,4 @@
 
-
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
@@ -7,6 +6,9 @@ import os
 import sys
 import fnmatch
 import re
+
+import random
+from datetime import datetime
 
 from sklearn.model_selection import train_test_split
 
@@ -31,7 +33,6 @@ base_dir = "../../../"
 train_images_dir = base_dir + "images/Chicken/train/"
 validation_images_dir = base_dir + "images/Chicken/validation/"
 test_images_dir = base_dir + "images/Chicken/test/"
-
 
 train_masks_dir = base_dir + "masks/Chicken/train/"
 validation_masks_dir = base_dir + "masks/Chicken/validation/"
@@ -80,7 +81,6 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     imgs_list = []
     masks_list = []
 
-
     counter = 0
     for mask in train_map:
         counter += 1
@@ -127,8 +127,6 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
             horizontal_flip=True
         ))
 
-
-
     input_shape = x_train[0].shape
 
     model = custom_unet(
@@ -152,6 +150,7 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
 
     try:
         model.load_weights(best_file_checkpoint)
+        print("Loaded best weights:", best_file_checkpoint)
     except Exception:
         print("Not loading weights")
 
@@ -168,17 +167,14 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     
     history = model.fit_generator(
         train_gen,
-        steps_per_epoch=5,
-        epochs=2,
+        steps_per_epoch=150,
+        epochs=10,
 
         validation_data=(x_val, y_val),
         callbacks=callbacks_list
     )
 
-
-
-
-
+fiddyfiddy = random.choice([0, 1])
 
 try:
     sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
@@ -191,40 +187,64 @@ except Exception as inst:
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 print(sorted_weights)
+os.remove(sorted_weights[-1])
 
-trainEpochWithNewData(100, 200, train_map, sorted_weights[0])
+fiddyfiddy = random.choice([0, 1])
 
-sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
-print(sorted_weights)
-
-trainEpochWithNewData(200, 300, train_map, sorted_weights[0])
+trainEpochWithNewData(100, 200, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 print(sorted_weights)
+os.remove(sorted_weights[-1])
 
-trainEpochWithNewData(300, 400, train_map, sorted_weights[0])
+fiddyfiddy = random.choice([0, 1])
 
-sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
-print(sorted_weights)
-
-trainEpochWithNewData(400, 500, train_map, sorted_weights[0])
+trainEpochWithNewData(200, 300, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 print(sorted_weights)
+os.remove(sorted_weights[-1])
 
-trainEpochWithNewData(500, 600, train_map, sorted_weights[0])
+fiddyfiddy = random.choice([0, 1])
 
-sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
-print(sorted_weights)
-
-trainEpochWithNewData(600, 700, train_map, sorted_weights[0])
+trainEpochWithNewData(300, 400, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 print(sorted_weights)
+os.remove(sorted_weights[-1])
 
-trainEpochWithNewData(700, 800, train_map, sorted_weights[0])
+fiddyfiddy = random.choice([0, 1])
+
+trainEpochWithNewData(400, 500, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 print(sorted_weights)
+os.remove(sorted_weights[-1])
 
-trainEpochWithNewData(800, 900, train_map, sorted_weights[0])
+fiddyfiddy = random.choice([0, 1])
+
+trainEpochWithNewData(500, 600, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+os.remove(sorted_weights[-1])
+
+fiddyfiddy = random.choice([0, 1])
+
+trainEpochWithNewData(600, 700, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+os.remove(sorted_weights[-1])
+
+fiddyfiddy = random.choice([0, 1])
+
+trainEpochWithNewData(700, 800, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
+
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+print(sorted_weights)
+os.remove(sorted_weights[-1])
+
+fiddyfiddy = random.choice([0, 1])
+
+trainEpochWithNewData(800, 900, train_map, sorted_weights[0] if fiddyfiddy == 1 else random.choice(sorted_weights))
