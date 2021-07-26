@@ -7,6 +7,8 @@ import os
 import sys
 import fnmatch
 import re
+import random
+from datetime import datetime
 
 base_dir = "../../../"
 
@@ -55,27 +57,29 @@ for fname in os.listdir(test_images_dir):
 imgs_list = []
 masks_list = []
 
-enough = 10
+random.seed(datetime.now())
+enough = random.randrange(5, len(test_image_paths) - 1)
+startindex = enough - 5
+counter = 0
 
 for mask in test_map:
-    enough -= 1
-    if (enough == 0):
-        break
-        
-    print(enough)
-    print(mask)
-    print(test_map[mask])
-
-    # Display auto-contrast version of corresponding target (per-pixel categories)
-    for value in test_map[mask]:
-        i = Image.open(test_images_dir + mask).resize((256,256))
-        i = i.convert('L') 
-        imgs_list.append(np.array(i))
-        
-        m = Image.open(value).resize((256,256))
-        m = m.convert('L')
-        masks_list.append(np.array(m))
+    counter += 1
     
+    if (counter > startindex and counter <= enough):
+    
+        print(mask)
+        print(test_map[mask])
+
+        # Display auto-contrast version of corresponding target (per-pixel categories)
+        for value in test_map[mask]:
+            i = Image.open(test_images_dir + mask).resize((256,256))
+            i = i.convert('L') 
+            imgs_list.append(np.array(i))
+
+            m = Image.open(value).resize((256,256))
+            m = m.convert('L')
+            masks_list.append(np.array(m))
+
     
 imgs_np = np.asarray(imgs_list)
 masks_np = np.asarray(masks_list)
@@ -128,16 +132,17 @@ from keras_unet.metrics import iou, iou_thresholded
 from keras_unet.losses import jaccard_distance
 
 model.compile(
-    #optimizer=Adam(), 
-    optimizer=SGD(lr=0.01, momentum=0.99),
-    #loss='binary_crossentropy',
-    loss=jaccard_distance,
+    optimizer=Adam(), 
+    #optimizer=SGD(lr=0.01, momentum=0.99),
+    loss='binary_crossentropy',
+    #loss=jaccard_distance,
     metrics=[iou, iou_thresholded]
 )
 
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 
+print(sorted_weights[0])
 model.load_weights(sorted_weights[0])
 y_pred = model.predict(x)
 
