@@ -119,9 +119,14 @@ model.summary()
 from keras.callbacks import ModelCheckpoint
 
 
+sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
+
+print(sorted_weights[0])
+
 #model_filename = 'chicken_training_varied.h5'
+
 callback_checkpoint = ModelCheckpoint(
-    model_filename, 
+    sorted_weights[0], 
     verbose=1, 
     monitor='val_loss', 
     save_best_only=True,
@@ -140,9 +145,6 @@ model.compile(
 )
 
 
-sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
-
-print(sorted_weights[0])
 model.load_weights(sorted_weights[0])
 y_pred = model.predict(x)
 
