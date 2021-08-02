@@ -167,7 +167,7 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     
     history = model.fit_generator(
         train_gen,
-        steps_per_epoch=150,
+        steps_per_epoch=x_train.shape[0],
         epochs=10,
 
         validation_data=(x_val, y_val),
