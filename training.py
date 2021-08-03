@@ -19,8 +19,8 @@ from PIL import Image
 from collections import defaultdict
 
 from keras_unet.models import custom_unet
-from keras.callbacks import ModelCheckpoint
-from keras.optimizers import Adam, SGD
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam, SGD
 from keras_unet.metrics import iou, iou_thresholded
 
 
@@ -114,7 +114,7 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
 
 
 
-    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.3, random_state=0)
+    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.5, random_state=0)
 
     print("x_train: ", x_train.shape)
     print("y_train: ", y_train.shape)
@@ -139,9 +139,11 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     )
 
    # model.summary()
+    
+    lr = random.uniform(0.001,0.0003)
 
     model.compile(
-        optimizer=Adam(),
+        optimizer=Adam(learning_rate=lr),
         #optimizer=SGD(lr=0.01, momentum=0.99),
         loss='binary_crossentropy',
         #loss=jaccard_distance,
@@ -168,7 +170,7 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     history = model.fit_generator(
         train_gen,
         steps_per_epoch=x_train.shape[0],
-        epochs=10,
+        epochs=30,
 
         validation_data=(x_val, y_val),
         callbacks=callbacks_list
