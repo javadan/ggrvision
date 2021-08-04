@@ -107,32 +107,34 @@ input_shape = x[0].shape
 
 model = custom_unet(
     input_shape,
-    use_batch_norm=False,
+    use_batch_norm=True,
     num_classes=1,
-    filters=32,
+    filters=64,
     dropout=0.2,
     output_activation='sigmoid'
 )
 
 model.summary()
 
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 
-print(sorted_weights[0])
+ran = sorted_weights[0]
+#ran = random.choice(sorted_weights)
+print(ran)
 
 #model_filename = 'chicken_training_varied.h5'
 
 callback_checkpoint = ModelCheckpoint(
-    sorted_weights[0], 
+    ran, 
     verbose=1, 
     monitor='val_loss', 
     save_best_only=True,
 )
 
-from keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers import Adam, SGD
 from keras_unet.metrics import iou, iou_thresholded
 from keras_unet.losses import jaccard_distance
 
@@ -150,4 +152,22 @@ y_pred = model.predict(x)
 
 from keras_unet.utils import plot_imgs
 
-plot_imgs(org_imgs=x, mask_imgs=y, pred_imgs=y_pred, nm_img_to_plot=9)
+plot_imgs(org_imgs=x, mask_imgs=y, pred_imgs=y_pred, nm_img_to_plot=9, alpha=0.5, color="blue")
+
+
+
+
+model.load_weights(sorted_weights[2])
+y_pred = model.predict(x)
+
+from keras_unet.utils import plot_imgs
+
+plot_imgs(org_imgs=x, mask_imgs=y, pred_imgs=y_pred, nm_img_to_plot=9, alpha=0.5, color="blue")
+                                  
+                                  
+model.load_weights(sorted_weights[8])
+y_pred = model.predict(x)
+
+from keras_unet.utils import plot_imgs
+
+plot_imgs(org_imgs=x, mask_imgs=y, pred_imgs=y_pred, nm_img_to_plot=9, alpha=0.5, color="blue")
