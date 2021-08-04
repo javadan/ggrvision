@@ -24,7 +24,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 from keras_unet.metrics import iou, iou_thresholded
 
 
-#from keras_unet.losses import jaccard_distance
+from keras_unet.losses import jaccard_distance
 
 
 
@@ -114,7 +114,7 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
 
 
 
-    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.5, random_state=0)
+    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.4, random_state=0)
 
     print("x_train: ", x_train.shape)
     print("y_train: ", y_train.shape)
@@ -122,18 +122,19 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     print("y_val: ", y_val.shape)
 
     train_gen = get_augmented(
-        x_train, y_train, batch_size=1,
+        x_train, y_train, batch_size=4,
         data_gen_args = dict(
-            horizontal_flip=True
+            horizontal_flip=True,
+            zoom_range=0.2
         ))
 
     input_shape = x_train[0].shape
 
     model = custom_unet(
         input_shape,
-        use_batch_norm=False,
+        use_batch_norm=True,
         num_classes=1,
-        filters=32,
+        filters=64,
         dropout=0.2,
         output_activation='sigmoid'
     )
@@ -153,7 +154,8 @@ def trainEpochWithNewData(offset, training_size, train_map, best_file_checkpoint
     try:
         model.load_weights(best_file_checkpoint)
         print("Loaded best weights:", best_file_checkpoint)
-    except Exception:
+    except Exception as inst:
+        print(inst)
         print("Not loading weights")
 
     fname = "weights-{val_loss:.4f}.hdf5"
@@ -185,7 +187,7 @@ try:
 except Exception as inst:
     print(inst)
     sorted_weights = None
-    trainEpochWithNewData(0, 100, train_map)
+    trainEpochWithNewData(0, 100, train_map, None)
 
 sorted_weights = sorted([fname for fname in os.listdir('.') if fname.startswith("weight")])
 print(sorted_weights)
