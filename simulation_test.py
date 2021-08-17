@@ -111,17 +111,25 @@ print(x.shape, y.shape)
 x = x.reshape(x.shape[0], x.shape[1], x.shape[2], 1)
 print(x.shape, y.shape)
 
+
+
+
 for i, title in enumerate(['image']):
      plt.imshow(x[0][:,:,i])
      #plt.imshow(y[0][:,:,i])
      plt.title(title)
      plt.show()
 
-
-for i, title in enumerate(['human', 'chicken', 'egg', 'robot']):
-     plt.imshow(y[0][:,:,i])
-     plt.title(title)
-     plt.show()
+f, axarr = plt.subplots(1,4)    
+    
+axarr[0].imshow(y[0][:,:,0])
+axarr[1].imshow(y[0][:,:,1])
+axarr[2].imshow(y[0][:,:,2])
+axarr[3].imshow(y[0][:,:,3])
+# for i, title in enumerate(['human', 'chicken', 'egg', 'robot']):
+#      plt.imshow(y[0][:,:,i])
+#      plt.title(title)
+#      plt.show()
 
 
 
@@ -171,13 +179,13 @@ model.compile(
 
 
 model.load_weights(sorted_weights[0])
-#y_pred = model.predict(x)
+y_pred = model.predict(x)
 
 from keras_unet.utils import plot_imgs
 
 plot_imgs(org_imgs=np.stack((x[0], x[0], x[0], x[0])),
           mask_imgs=np.stack((y[0][:,:,0], y[0][:,:,1], y[0][:,:,2], y[0][:,:,3])),
-          #pred_imgs=np.stack((y_pred[0][:,:,0], y_pred[0][:,:,1], y_pred[0][:,:,2], y_pred[0][:,:,3])),
+          pred_imgs=np.stack((y_pred[0][:,:,0], y_pred[0][:,:,1], y_pred[0][:,:,2], y_pred[0][:,:,3])),
           nm_img_to_plot=4)
 
 
