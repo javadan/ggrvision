@@ -24,8 +24,8 @@ from tensorflow.keras.optimizers import Adam, SGD
 from keras_unet.metrics import iou, iou_thresholded
 
 
-train_images_dir = "jpgs/"
-train_masks_dir = "pngs/"
+train_images_dir = "../../../images/SimulationVision/cnn/"
+train_masks_dir = "../../../images/SimulationVision/cnn/"
 
 
 #from keras_unet.losses import jaccard_distance
@@ -34,7 +34,7 @@ train_image_paths = sorted(
     [
         os.path.join(train_images_dir, fname)
         for fname in os.listdir(train_images_dir)
-        if fname.endswith(".jpg")
+        if fname.startswith("rgb") and fname.endswith(".jpg")
     ]
 )
 
@@ -76,7 +76,7 @@ for image in train_image_paths:
     
     m = Image.open(value).resize((256,256))
     #m = m.convert('L') 
-    full_mask = np.array(m)
+    fullmask = np.array(m)
     
     #plane = (fullmask == 0)
     egg = (fullmask == 1)
@@ -85,11 +85,11 @@ for image in train_image_paths:
     human = (fullmask == 4)
     #sky = (fullmask == 255)
     
-    masks = np.stack(egg, chicken, robot, human)
+    masks = np.stack((egg, chicken, robot, human), axis=-1)
     
     masks_list.append(masks)
     
-    if count == 100:
+    if count == 2000:
       break
         
 imgs_np = np.asarray(imgs_list)
@@ -99,11 +99,11 @@ print(imgs_np.shape, masks_np.shape)
 print(imgs_np.max(), masks_np.max())
 
 x = np.asarray(imgs_np, dtype=np.float32)/255
-y = np.asarray(masks_np, dtype=np.float32)/255
+y = np.asarray(masks_np, dtype=np.float32)
 
 print(x.max(), y.max())
 print(x.shape, y.shape)
-y = y.reshape(y.shape[0], y.shape[1], y.shape[2], 1)
+#y = y.reshape(y.shape[0], y.shape[1], y.shape[2], 1)
 print(x.shape, y.shape)
 x = x.reshape(x.shape[0], x.shape[1], x.shape[2], 1)
 print(x.shape, y.shape)
@@ -116,7 +116,7 @@ print("x_val: ", x_val.shape)
 print("y_val: ", y_val.shape)
 
 train_gen = get_augmented(
-    x_train, y_train, batch_size=2,
+    x_train, y_train, batch_size=4,
     data_gen_args = dict(
         horizontal_flip=True,
         zoom_range=0.3
@@ -164,12 +164,11 @@ callbacks_list = [callback_checkpoint]
 
 history = model.fit_generator(
     train_gen,
-    steps_per_epoch=x_train.shape[0],
-    epochs=10,
+    steps_per_epoch=x_train.shape[0] / 4,
+    epochs=20,
 
     validation_data=(x_val, y_val),
     callbacks=callbacks_list
 )
-
 
 
