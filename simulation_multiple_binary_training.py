@@ -57,40 +57,44 @@ imgs_list = []
 masks_list = []
 
 
+random.seed(datetime.now())
+enough = random.randrange(2001, 20000)#len(test_image_paths) - 1)
+startindex = enough - 2000
+
+
 count = 0
 for image in train_image_paths:
     count+=1    
 
+    if count > startindex and count < enough:
     #cause we need 6 masks
     #masks = np.zeros((256,256, num_classes)).astype('float')
-    
-    value = train_mask_paths[count-1]
-    print(str(count - 1) + "    ./"+image+ "    ./"+value)
 
-    
-    i = Image.open(image).resize((256,256))
-    i = i.convert('L') 
-    imgs_list.append(np.array(i))
+        value = train_mask_paths[count-1]
+        print(str(count - 1) + "    ./"+image+ "    ./"+value)
 
-    #make masks
-    
-    m = Image.open(value).resize((256,256))
-    #m = m.convert('L') 
-    fullmask = np.array(m)
-    
-    #plane = (fullmask == 0)
-    egg = (fullmask == 1)
-    chicken = (fullmask == 2)
-    robot = (fullmask == 3)
-    human = (fullmask == 4)
-    #sky = (fullmask == 255)
-    
-    masks = np.stack((egg, chicken, robot, human), axis=-1)
-    
-    masks_list.append(masks)
-    
-    if count == 2000:
-      break
+
+        i = Image.open(image).resize((256,256))
+        i = i.convert('L') 
+        imgs_list.append(np.array(i))
+
+        #make masks
+
+        m = Image.open(value).resize((256,256))
+        #m = m.convert('L') 
+        fullmask = np.array(m)
+
+        #plane = (fullmask == 0)
+        egg = (fullmask == 1)
+        chicken = (fullmask == 2)
+        robot = (fullmask == 3)
+        human = (fullmask == 4)
+        #sky = (fullmask == 255)
+
+        masks = np.stack((egg, chicken, robot, human), axis=-1)
+
+        masks_list.append(masks)
+
         
 imgs_np = np.asarray(imgs_list)
 masks_np = np.asarray(masks_list)
