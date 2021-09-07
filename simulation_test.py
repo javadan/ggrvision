@@ -24,8 +24,8 @@ from keras_unet.losses import jaccard_distance
 
 
 
-test_images_dir = "../../../images/SimulationVision/cnn/"
-test_masks_dir = "../../../images/SimulationVision/cnn/"
+test_images_dir = "../cnn/"
+test_masks_dir = "../cnn/"
 
 #test_images_dir = "jpgs/"
 #test_masks_dir = "pngs/"
@@ -129,7 +129,7 @@ axarr[3].imshow(y[0][:,:,3])
 # for i, title in enumerate(['human', 'chicken', 'egg', 'robot']):
 #      plt.imshow(y[0][:,:,i])
 #      plt.title(title)
-#      plt.show()
+plt.show()
 
 
 
@@ -181,6 +181,19 @@ model.compile(
 model.load_weights(sorted_weights[0])
 y_pred = model.predict(x)
 
+
+r = y_pred[0][:,:,2] #human
+g = y_pred[0][:,:,1] #chicken
+b = y_pred[0][:,:,0] #egg
+
+rgb_uint8 = (np.dstack((r,g,b)) * 255) .astype(np.uint8)
+
+for i, title in enumerate(['image']):
+    plt.imshow(rgb_uint8)
+    plt.title(title)
+    plt.show()
+
+    
 from keras_unet.utils import plot_imgs
 
 plot_imgs(org_imgs=np.stack((x[0], x[0], x[0], x[0])),
