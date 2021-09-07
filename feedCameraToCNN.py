@@ -125,31 +125,117 @@ camera = jetson.utils.videoSource("/dev/video0")
 display = jetson.utils.videoOutput("rtp://192.168.101.127:1234","--headless") # 'my_video.mp4' for file
 
 
+
+
+
+#https://github.com/dusty-nv/jetson-inference/blob/master/python/examples/depthnet_utils.py
+class depthBuffers:
+    def __init__(self, args):
+        self.args = args
+        self.depth = None
+        self.composite = None
+        
+        self.use_input = "input" in args.visualize
+        self.use_depth = "depth" in args.visualize
+            
+    def Alloc(self, shape, format):
+        depth_size = (shape[0] * self.args.depth_size, shape[1] * self.args.depth_size)
+        composite_size = [0,0]
+        
+        if self.depth is not None and self.depth.height == depth_size[0] and self.depth.width == depth_size[1]:
+            return
+            
+        if self.use_depth:
+            composite_size[0] = depth_size[0]
+            composite_size[1] += depth_size[1]
+            
+        if self.use_input:
+            composite_size[0] = shape[0]
+            composite_size[1] += shape[1]
+
+        self.depth = jetson.utils.cudaAllocMapped(width=depth_size[1], height=depth_size[0], format=format)
+        self.composite = jetson.utils.cudaAllocMapped(width=composite_size[1], height=composite_size[0], format=format)
+        
+        
+
 while True:
     cuda_img = camera.Capture()
-    array = jetson.utils.cudaToNumpy(cuda_img)
-    print(array.shape)
+    
+    resized_img = jetson.utils.cudaAllocMapped(width=256, height=256, format='rgb8')
+    jetson.utils.cudaResize(cuda_img, resized_img)
+    
+    rgb_img = resized_img
 
-    x = cv2.resize(array, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
-    print(x.shape)
+#     print('RGB image: ')
+#     print(rgb_img)
+
+#     # convert to BGR, since that's what OpenCV expects
+#     bgr_img = jetson.utils.cudaAllocMapped(width=rgb_img.width,
+#                                     height=rgb_img.height,
+#                                     format='bgr8')
+
+#     jetson.utils.cudaConvertColor(rgb_img, bgr_img)
+
+#     print('BGR image: ')
+#     print(bgr_img)
+
+#     # make sure the GPU is done work before we convert to cv2
+#     jetson.utils.cudaDeviceSynchronize()
     
-    gray = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
-    gray_expanded = gray[:, :, np.newaxis]
-    print(gray_expanded.shape)
-    
+#     # convert to cv2 image (cv2 images are numpy arrays)
+#     cv_img = jetson.utils.cudaToNumpy(bgr_img)
+
+#     print('OpenCV image size: ' + str(cv_img.shape))
+#     print('OpenCV image type: ' + str(cv_img.dtype))
+
+    PILim = Image.fromarray(jetson.utils.cudaToNumpy(resized_img))
+    PILim = i.convert('L') 
     
     enlisted = []
-    enlisted.append(gray_expanded)
-    #nplist = np.asarray(enlisted)
-    cnn_sized_image = np.asarray(enlisted, dtype=np.float32)/255
-    #cnn_sized_image = cnn_sized_image.reshape(cnn_sized_image.shape[0], cnn_sized_image.shape[1], 1)
+    enlisted.append(np.array(PILim))
+    nplist = np.asarray(enlisted)
+    cnn_sized_image = np.asarray(nplist, dtype=np.float32)/255
+    
+    x = cnn_sized_image
+    x = x.reshape(x.shape[0], x.shape[1], x.shape[2], 1)
     
     print(cnn_sized_image.max())
     print(cnn_sized_image.shape)
-    y_pred = model.predict(cnn_sized_image)
+    print(x.max())
+    print(x.shape)
+    
+    y_pred = model.predict(x)
+    
+    new_image = Image.new('RGB', (256,256), 0)
+    
+    y1 = Image.fromarray(y_pred[0][:,:,2])
+    y2 = Image.fromarray(y_pred[0][:,:,1])
+    y3 = Image.fromarray(y_pred[0][:,:,0])
     
     
-    display.Render(jetson.utils.cudaFromNumpy(y_pred[0]))
+    
+    new_image.paste(y1)
+    new_image.paste(y2)
+    new_image.paste(y3)
+    
+    
+    #bands = [y1,y2,y3]
+    #multi_layer_img = Image.merge("RGB", bands)
+    
+
+    
+    #y_pred_img = Image.fromarray(y_pred[0][:,:,3])
+    
+#     new_image.paste(y_pred[0][:,:,2], box=(0, 0) + new_image.size)
+#     new_image.paste(y_pred[0][:,:,1], box=(0, 0) + new_image.size)
+#     new_image.paste(y_pred[0][:,:,0], box=(0, 0) + new_image.size)
+    
+    #new_image.paste(y_pred[0],(0,0))
+
+    #display.Render(cv_img)
+    
+    #display.Render(rgb_img)
+    display.Render(jetson.utils.cudaFromNumpy(np.array(new_image)) )
     
     
     
@@ -179,3 +265,35 @@ while True:
 #           nm_img_to_plot=4)
 
 
+
+    #gray = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
+    #gray_expanded = gray[:, :, np.newaxis]
+    #print(gray_expanded.shape)
+
+    #from https://github.com/dusty-nv/jetson-utils/blob/master/python/examples/cuda-examples.py
+    #gray_img = convert_color(gray, "rgb8")
+
+    #cv2.cvtColor() with cv2.COLOR_RGB2BGR
+    
+    
+#     enlisted = []
+#     enlisted.append(x)
+#     #nplist = np.asarray(enlisted)
+#     cnn_sized_image = np.asarray(enlisted, dtype=np.float32)/255
+#     #cnn_sized_image = cnn_sized_image.reshape(cnn_sized_image.shape[0], cnn_sized_image.shape[1], 1)
+    
+#     print(cnn_sized_image.max())
+#     print(cnn_sized_image.shape)
+#     #y_pred = model.predict(cnn_sized_image)
+    
+    
+#     imgInput = cuda_img# jetson.utils.loadImage('my_image.jpg')
+
+#     allocate the output image, with the same dimensions as input
+#     imgOutput = jetson.utils.cudaAllocMapped(width=imgInput.width, height=imgInput.height, format=imgInput.format)
+
+    # normalize the image from [0,255] to [0,1]
+    #jetson.utils.cudaNormalize(imgInput, (0,255), imgOutput, (0,1))
+    
+
+    # load the image into CUDA memory
